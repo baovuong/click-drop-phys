@@ -105,52 +105,52 @@ CachedImageBox.prototype.render = function (ctx, scale) {
     ctx.restore();
 }
 
-var physOverlayVariables = null;
+var clickDropVariables = null;
 
 function clickDropInit(args) {
-    physOverlayVariables = {};
-    physOverlayVariables.scale = args.scale;
-    physOverlayVariables.images = new Array();
+    clickDropVariables = {};
+    clickDropVariables.scale = args.scale;
+    clickDropVariables.images = new Array();
     args.images.forEach(function (image) {
-        physOverlayVariables.images.push(loadImage(image, physOverlayVariables.scale));
+        clickDropVariables.images.push(loadImage(image, clickDropVariables.scale));
     });
-    physOverlayVariables.things = new Array();
-    physOverlayVariables.world = new b2World(new b2Vec2(0, 50), true);
+    clickDropVariables.things = new Array();
+    clickDropVariables.world = new b2World(new b2Vec2(0, 50), true);
 
-    physOverlayVariables.canvas = document.createElement('canvas');
-    physOverlayVariables.canvas.style.position = 'fixed';
-    physOverlayVariables.canvas.style.top = '0px';
-    physOverlayVariables.canvas.style.left = '0px';
-    physOverlayVariables.canvas.style.zIndex = 3;
-    physOverlayVariables.canvas.style.pointerEvents = 'none';
+    clickDropVariables.canvas = document.createElement('canvas');
+    clickDropVariables.canvas.style.position = 'fixed';
+    clickDropVariables.canvas.style.top = '0px';
+    clickDropVariables.canvas.style.left = '0px';
+    clickDropVariables.canvas.style.zIndex = 3;
+    clickDropVariables.canvas.style.pointerEvents = 'none';
 
-    physOverlayVariables.ctx = physOverlayVariables.canvas.getContext('2d');
-    document.getElementsByTagName('body')[0].appendChild(physOverlayVariables.canvas);
+    clickDropVariables.ctx = clickDropVariables.canvas.getContext('2d');
+    document.getElementsByTagName('body')[0].appendChild(clickDropVariables.canvas);
 
     window.onmousedown = function (e) {
         var newThing = new CachedImageBox(world,
-            physOverlayVariables.images[randInt(0, physOverlayVariables.images.length - 1)],
-            e.clientX / physOverlayVariables.scale,
-            e.clientY / physOverlayVariables.scale,
-            physOverlayVariables.scale);
+            clickDropVariables.images[randInt(0, clickDropVariables.images.length - 1)],
+            e.clientX / clickDropVariables.scale,
+            e.clientY / clickDropVariables.scale,
+            clickDropVariables.scale);
 
-        physOverlayVariables.things.push(newThing);
-        var vx = randInt(-100, 100) * 10 / physOverlayVariables.scale;
-        var vy = randInt(-500, -100) * 10 / physOverlayVariables.scale;
+        clickDropVariables.things.push(newThing);
+        var vx = randInt(-100, 100) * 10 / clickDropVariables.scale;
+        var vy = randInt(-500, -100) * 10 / clickDropVariables.scale;
         newThing.body.ApplyImpulse(new b2Vec2(vx, vy), newThing.body.GetWorldCenter());
         newThing.body.ApplyTorque(randInt(-500, 500));
     }
     window.onresize = function () {
-        physOverlayVariables.canvas.width = window.innerWidth;
-        physOverlayVariables.canvas.height = window.innerHeight;
+        clickDropVariables.canvas.width = window.innerWidth;
+        clickDropVariables.canvas.height = window.innerHeight;
     };
     window.onresize();
     world = new b2World(new b2Vec2(0, 40), true);
     window.setInterval(function () {
-        physOverlayVariables.ctx.clearRect(0, 0, physOverlayVariables.canvas.width, physOverlayVariables.canvas.height);
+        clickDropVariables.ctx.clearRect(0, 0, clickDropVariables.canvas.width, clickDropVariables.canvas.height);
         world.Step(1 / 60, 10, 10);
-        physOverlayVariables.things.forEach(function (thing) {
-            thing.render(physOverlayVariables.ctx, physOverlayVariables.scale);
+        clickDropVariables.things.forEach(function (thing) {
+            thing.render(clickDropVariables.ctx, clickDropVariables.scale);
         });
         world.ClearForces();
     }, 1000 / 60);
