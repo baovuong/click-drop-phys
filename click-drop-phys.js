@@ -29,9 +29,6 @@ function loadImage(src, scale) {
         image.canvas.width = 2 * scale * ratio;
         image.canvas.height = 2 * scale;
         image.ctx.drawImage(i, 0, 0, image.canvas.width, image.canvas.height);
-        // image.ctx.fillStyle = "#FF0000";
-        // image.ctx.fillRect(0, 0, image.canvas.width, image.canvas.height);
-        //image.ctx.restore();
     };
     i.src = src;
 
@@ -103,7 +100,19 @@ CachedImageBox.prototype.render = function (ctx, scale) {
     ctx.rotate(this.body.GetAngle());
     ctx.drawImage(this.image.canvas, -1 * round(this.image.canvas.width / 2), -1 * round(this.image.canvas.height / 2));
     ctx.restore();
-}
+};
+
+CachedImageBox.prototype.inBounds = function (canvas, scale) {
+    var pos = this.body.GetPosition();
+    var width = this.image.canvas.width / 2;
+    var height = this.image.canvas.height / 2;
+    var radius = Math.sqrt(width * width + height * height);
+
+    return pos.x * scale - radius <= canvas.width &&
+        pos.x * scale + radius >= 0 &&
+        pos.y * scale - radius <= canvas.height &&
+        pos.y * scale + radius >= 0;
+};
 
 var clickDropVariables = null;
 
@@ -146,12 +155,15 @@ function clickDropInit(args) {
     };
     window.onresize();
     world = new b2World(new b2Vec2(0, 40), true);
-    window.setInterval(function () {
+
+    function clickDropUpdate() {
         clickDropVariables.ctx.clearRect(0, 0, clickDropVariables.canvas.width, clickDropVariables.canvas.height);
         world.Step(1 / 60, 10, 10);
         clickDropVariables.things.forEach(function (thing) {
             thing.render(clickDropVariables.ctx, clickDropVariables.scale);
         });
         world.ClearForces();
-    }, 1000 / 60);
+        requestAnimationFrame(clickDropUpdate);
+    }
+    clickDropUpdate();
 }
