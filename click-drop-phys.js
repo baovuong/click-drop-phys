@@ -75,7 +75,7 @@ Box.prototype.render = function (ctx, scale) {
 function CachedImageBox(world, cachedImage, x, y, scale) {
     var body = null;
     this.image = cachedImage;
-
+    this.radius = this.calculateRadius();
     // body
     var bodyDef = new b2BodyDef();
     bodyDef.type = b2Body.b2_dynamicBody;
@@ -96,22 +96,41 @@ function CachedImageBox(world, cachedImage, x, y, scale) {
 CachedImageBox.prototype.render = function (ctx, scale) {
     var pos = this.body.GetPosition();
     ctx.save();
+
+
+
     ctx.translate(pos.x * scale, pos.y * scale);
     ctx.rotate(this.body.GetAngle());
     ctx.drawImage(this.image.canvas, -1 * round(this.image.canvas.width / 2), -1 * round(this.image.canvas.height / 2));
+
     ctx.restore();
 };
 
-CachedImageBox.prototype.inBounds = function (canvas, scale) {
-    var pos = this.body.GetPosition();
+CachedImageBox.prototype.calculateRadius = function () {
     var width = this.image.canvas.width / 2;
     var height = this.image.canvas.height / 2;
-    var radius = Math.sqrt(width * width + height * height);
+    return Math.sqrt(width * width + height * height) + 60;
+};
 
-    return pos.x * scale - radius <= canvas.width &&
-        pos.x * scale + radius >= 0 &&
-        pos.y * scale - radius <= canvas.height &&
-        pos.y * scale + radius >= 0;
+CachedImageBox.prototype.topBoundDistance = function (scale) {
+    return this.body.GetPosition().y * scale - this.radius;
+};
+
+CachedImageBox.prototype.bottomBoundDistance = function (scale) {
+    return this.body.GetPosition().y * scale + this.radius;
+};
+
+CachedImageBox.prototype.leftBoundDistance = function (scale) {
+    return this.body.GetPosition().x * scale - this.radius;
+};
+
+CachedImageBox.prototype.rightBoundDistance = function (scale) {
+    return this.body.GetPosition().x * scale + this.radius;
+};
+
+CachedImageBox.prototype.stillIn = function (canvas, scale) {
+    var pos = this.body.GetPosition();
+    return pos.y * scale - this.radius <= canvas.height;
 };
 
 var clickDropVariables = null;
@@ -157,11 +176,60 @@ function clickDropInit(args) {
     world = new b2World(new b2Vec2(0, 40), true);
 
     function clickDropUpdate() {
-        clickDropVariables.ctx.clearRect(0, 0, clickDropVariables.canvas.width, clickDropVariables.canvas.height);
-        world.Step(1 / 60, 10, 10);
+
+        clickDropVariables.things = clickDropVariables.things.filter(function (t) {
+            return t.stillIn(clickDropVariables.canvas, clickDropVariables.scale);
+        });
+        if (clickDropVariables.things.length > 0) {
+            //clickDropVariables.canvas.width = clickDropVariables.canvas.width;
+            //clickDropVariables.ctx.clearRect(0, 0, clickDropVariables.canvas.width, clickDropVariables.canvas.height);
+
+            var positions = clickDropVariables.things.map(function (t) {
+                return t.body.GetPosition();
+            });
+
+            var lbs = clickDropVariables.things.map(function (t) {
+                return t.leftBoundDistance(clickDropVariables.scale);
+            }).sort(function (a, b) {
+                return a - b;
+            });
+            var rbs = clickDropVariables.things.map(function (t) {
+                return t.rightBoundDistance(clickDropVariables.scale);
+            }).sort(function (a, b) {
+                return b - a;
+            });
+            var tbs = clickDropVariables.things.map(function (t) {
+                return t.topBoundDistance(clickDropVariables.scale);
+            }).sort(function (a, b) {
+                return a - b;
+            });
+            var bbs = clickDropVariables.things.map(function (t) {
+                return t.bottomBoundDistance(clickDropVariables.scale);
+            }).sort(function (a, b) {
+                return b - a;
+            });
+            var x0 = lbs[0];
+            var x1 = rbs[0];
+            var y0 = tbs[0];
+            var y1 = bbs[0];
+
+            clickDropVariables.ctx.clearRect(
+                x0,
+                y0,
+                Math.abs(x1 - x0),
+                Math.abs(y1 - y0));
+        }
+
         clickDropVariables.things.forEach(function (thing) {
             thing.render(clickDropVariables.ctx, clickDropVariables.scale);
         });
+
+        // clickDropVariables.ctx.strokeRect(
+        //     Math.max(0, x - 5),
+        //     Math.max(0, y - 5),
+        //     Math.min(clickDropVariables.canvas.width, 5 + (clickDropVariables.canvas.width - width) - x),
+        //     Math.min(clickDropVariables.canvas.height, 5 + (clickDropVariables.canvas.height - height) - y));
+        world.Step(1 / 60, 10, 10);
         world.ClearForces();
         requestAnimationFrame(clickDropUpdate);
     }
