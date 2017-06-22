@@ -166,7 +166,7 @@ function clickDropInit(args) {
         var vx = randInt(-100, 100) * 10 / clickDropVariables.scale;
         var vy = randInt(-500, -100) * 10 / clickDropVariables.scale;
         newThing.body.ApplyImpulse(new b2Vec2(vx, vy), newThing.body.GetWorldCenter());
-        newThing.body.ApplyTorque(randInt(-500, 500));
+        newThing.body.ApplyTorque(randInt(-700, 700));
     }
     window.onresize = function () {
         clickDropVariables.canvas.width = window.innerWidth;
@@ -181,38 +181,28 @@ function clickDropInit(args) {
             return t.stillIn(clickDropVariables.canvas, clickDropVariables.scale);
         });
         if (clickDropVariables.things.length > 0) {
-            //clickDropVariables.canvas.width = clickDropVariables.canvas.width;
             //clickDropVariables.ctx.clearRect(0, 0, clickDropVariables.canvas.width, clickDropVariables.canvas.height);
 
-            var positions = clickDropVariables.things.map(function (t) {
-                return t.body.GetPosition();
-            });
-
-            var lbs = clickDropVariables.things.map(function (t) {
+            var x0 = clickDropVariables.things.map(function (t) {
                 return t.leftBoundDistance(clickDropVariables.scale);
             }).sort(function (a, b) {
                 return a - b;
-            });
-            var rbs = clickDropVariables.things.map(function (t) {
+            })[0];
+            var x1 = clickDropVariables.things.map(function (t) {
                 return t.rightBoundDistance(clickDropVariables.scale);
             }).sort(function (a, b) {
                 return b - a;
-            });
-            var tbs = clickDropVariables.things.map(function (t) {
+            })[0];
+            var y0 = clickDropVariables.things.map(function (t) {
                 return t.topBoundDistance(clickDropVariables.scale);
             }).sort(function (a, b) {
                 return a - b;
-            });
-            var bbs = clickDropVariables.things.map(function (t) {
+            })[0];
+            var y1 = clickDropVariables.things.map(function (t) {
                 return t.bottomBoundDistance(clickDropVariables.scale);
             }).sort(function (a, b) {
                 return b - a;
-            });
-            var x0 = lbs[0];
-            var x1 = rbs[0];
-            var y0 = tbs[0];
-            var y1 = bbs[0];
-
+            })[0];
             clickDropVariables.ctx.clearRect(x0,y0,Math.abs(x1 - x0),Math.abs(y1 - y0));
         }
 
@@ -220,11 +210,6 @@ function clickDropInit(args) {
             thing.render(clickDropVariables.ctx, clickDropVariables.scale);
         });
 
-        // clickDropVariables.ctx.strokeRect(
-        //     Math.max(0, x - 5),
-        //     Math.max(0, y - 5),
-        //     Math.min(clickDropVariables.canvas.width, 5 + (clickDropVariables.canvas.width - width) - x),
-        //     Math.min(clickDropVariables.canvas.height, 5 + (clickDropVariables.canvas.height - height) - y));
         world.Step(1 / 60, 10, 10);
         world.ClearForces();
         requestAnimationFrame(clickDropUpdate);
