@@ -213,11 +213,7 @@ function clickDropInit(args) {
             var y0 = tbs[0];
             var y1 = bbs[0];
 
-            clickDropVariables.ctx.clearRect(
-                x0,
-                y0,
-                Math.abs(x1 - x0),
-                Math.abs(y1 - y0));
+            clickDropVariables.ctx.clearRect(x0,y0,Math.abs(x1 - x0),Math.abs(y1 - y0));
         }
 
         clickDropVariables.things.forEach(function (thing) {
