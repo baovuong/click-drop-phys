@@ -15,6 +15,12 @@ function round(num) {
     return (0.5 + num) | 0;
 }
 
+function fastAbs(num) {
+    // needs to be an integer
+    var mask = num >> 63;
+    return (mask^num) - mask;
+}
+
 function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
@@ -96,15 +102,16 @@ function CachedImageBox(world, cachedImage, x, y, scale) {
 CachedImageBox.prototype.render = function (ctx, scale) {
     var pos = this.body.GetPosition();
     ctx.save();
-
-
-
     ctx.translate(pos.x * scale, pos.y * scale);
     ctx.rotate(this.body.GetAngle());
     ctx.drawImage(this.image.canvas, -1 * round(this.image.canvas.width / 2), -1 * round(this.image.canvas.height / 2));
-
     ctx.restore();
 };
+
+CachedImageBox.prototype.clear = function(ctx, scale) {
+    var pos = this.body.GetPosition();
+    ctx.clearRect(pos.x*scale-this.radius, pos.y*scale-this.radius, this.radius*2, this.radius*2);
+}
 
 CachedImageBox.prototype.calculateRadius = function () {
     var width = this.image.canvas.width / 2;
@@ -203,7 +210,10 @@ function clickDropInit(args) {
             }).sort(function (a, b) {
                 return b - a;
             })[0];
-            clickDropVariables.ctx.clearRect(x0,y0,Math.abs(x1 - x0),Math.abs(y1 - y0));
+            clickDropVariables.ctx.clearRect(x0, y0, fastAbs(x1 - x0), fastAbs(y1 - y0));
+            // clickDropVariables.things.forEach(function (thing) {
+            //     thing.clear(clickDropVariables.ctx, clickDropVariables.scale);
+            // });
         }
 
         clickDropVariables.things.forEach(function (thing) {
